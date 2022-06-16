@@ -21,14 +21,14 @@ Cap_B = 10;
 Cap_C = 55;
 
 % A
-lambda1 = @(t) (-(1/3650)*t^2 + (1/10)*t); % arrival rate, ward A
+lambda1 = @(t) (-(1/3650).*t.^2 + (1/10).*t); % arrival rate, ward A
 mu1 = log(4*sqrt(2));
 s2_1 = log(2); 
 % Length of stay for A is lognormal dist. 
 % Mean and sd of 8 days.
 
 % B
-lambda2 = @(t) ((1/5)*lambda1(t));
+lambda2 = @(t) ((1/5).*lambda1(t));
 mu2 = log(6*sqrt(2));
 s2_2 = log(2); 
 % Length of stay for B is lognormal dist. 
@@ -50,5 +50,30 @@ s2_3 = log(2);
 % due to shortage of beds.
 % Also estimate the mean fraction of beds that are utilized in each ward.
 
-[Rejected, Reallocated, mean_occ] = BedUtil([Cap_A, Cap_B, Cap_C],...
-    [mu1,mu2,mu3],[s2_1, s2_2, s2_3],[lambda1, lambda2, lambda3]);
+[Rejected, Reallocated, bedocc] = BedUtil([Cap_A, Cap_B, Cap_C],...
+    [mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
+
+%%
+% for i =1:366
+% 
+% plot(1:i,bedocc(1,1:i),1:i,bedocc(2,1:i))
+% legend("A","B","C")
+% %pause(0.25)
+% end
+figure;
+
+plot(1:366,bedocc(1,1:end),1:366,bedocc(2,1:end))
+%%
+figure
+plot(Rejected')
+title("Reject")
+legend("A","B","C")
+
+%%
+figure;
+plot(Reallocated')
+%legend("A","B","C")
+title("reloc")
+
+%%
+figure;plot(1:365,lambda2(1:365))
