@@ -3,42 +3,32 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear, clc
 close all
-%% Introduction
-
-% A: Regular care ward, 
-% B: Intensive care ward
-% C: Inpatient ward, originally contained 75 beds, some of which are now
-% moved to A and B.
-
-% t0 = 0,    t_final = 365.
 
 %% Initialization
 rng(19);
 % Initial guess for distribution of the beds
-Cap_A = 25;
-Cap_B = 25;
-Cap_C = 25;
+Cap = [20 20 20; 27 26 27; 34 33 33];
 
-% A
-lambda1 = @(t) (-(1/3650).*t.^2 + (1/10).*t); % arrival rate, ward A
 mu1 = log(4*sqrt(2));
 s2_1 = log(2); 
-% Length of stay for A is lognormal dist. 
-% Mean and sd of 8 days.
-
-% B
-lambda2 = @(t) ((1/5).*lambda1(t));
 mu2 = log(6*sqrt(2));
 s2_2 = log(2); 
-% Length of stay for B is lognormal dist. 
-% Mean and sd of 12 days.
-
-% C
-lambda3 = @(t) (6);
 mu3 = log(5*sqrt(2));
 s2_3 = log(2);
-% Length of stay for C is lognormal dist. 
-% Mean and sd of 10 days.
+
+for i = 1:size(Cap,2)
+    [Rejected, Reallocated, bedocc, no_patients] = BedUtil([Cap(i,1), Cap(i,2), Cap(i,3)],...
+    [mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
+
+    disp(no_patients)
+    disp([sum(Rejected(1,:)) sum(Reallocated), sum(Rejected(3,:))])
+
+    mnA = sum(Rejected(1,:))/no_patients(1)
+    mnB = sum(Reallocated(1,:))/no_patients(2)
+    mnC = sum(Rejected(3,:))/no_patients(3)
+
+end
+    
 
 
 %% Simulation
@@ -49,8 +39,7 @@ s2_3 = log(2);
 % due to shortage of beds.
 % Also estimate the mean fraction of beds that are utilized in each ward.
 
-[Rejected, Reallocated, bedocc, no_patients] = BedUtil([Cap_A, Cap_B, Cap_C],...
-    [mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
+
 
 %% Determining fractions
 % Estimate the probability that all beds are occupied on arrival for each

@@ -39,7 +39,7 @@ for t = 1:365
         %if (cap(2)-bedocc(2,t) > 0) %new arrivals are Redundant?
         pA = pA + (pB - (cap(2)-nnz(Stay2))); % redirect  to A
         Realloc(t) = (pB - (cap(2)-nnz(Stay2))); %save number of relocated from B to A
-        pB = pB - (cap(2)-nnz(Stay2)); %update new arrivals to B
+        pB = pB - Realloc(t); %(cap(2)-nnz(Stay2)); %update new arrivals to B
         bedocc(2,t) = nnz(Stay2) + pB; %add to ward B
         
     end 
