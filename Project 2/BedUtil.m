@@ -1,9 +1,10 @@
-function [Rejec, Realloc, bedocc] = BedUtil(cap,mu,sigma)
+function [Rejec, Realloc, bedocc, no_patients] = BedUtil(cap,mu,sigma)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 bedocc = zeros(3,365+1); % Number of beds occupied in each ward
 Rejec = zeros(3,365+1); %Number of rejected for ward A and C, B is 0
 Realloc = zeros(1,365+1); %Number reloctacted from B to A
+no_patients = zeros(1,3); % Needed to determine fraction of rejected pt's.
 
 arr_t = zeros(3,365);
 lambda1 = @(t) (-(1/3650)*t^2 + (1/10)*t); % arrival rate, ward A
@@ -25,38 +26,45 @@ for t = 1:365
     pB = round(lambda2(t)); % number of patients arriving day t for A
     pC = round(lambda3(t)); % number of patients arriving day t for A
     
-    if (pB <= cap(2)-nnz(Stay2)) %new arrivals to B are lower avaliable places
+    % counting total number of patient types
+    no_patients(1) = no_patients(1) + pA; 
+    no_patients(2) = no_patients(2) + pB;
+    no_patients(3) = no_patients(3) + pC;
+    
+    %%% Intensive care patients are first priority (Ward B)
+    if (pB <= cap(2)-nnz(Stay2)) %new arrivals to B is less than number of avaliable beds
         bedocc(2,t) = nnz(Stay2) + pB; %add to ward B
 
-    elseif (pB > cap(2)-nnz(Stay2)) %new arrivlas are higher than avaliable places
-        %if (cap(2)-bedocc(2,t) > 0) %new arrivals are Rundandt?
+    elseif (pB > cap(2)-nnz(Stay2)) %new arrivals are higher than number of avaliable beds
+        %if (cap(2)-bedocc(2,t) > 0) %new arrivals are Redundant?
         pA = pA + (pB - (cap(2)-nnz(Stay2))); % redirect  to A
         Realloc(t) = (pB - (cap(2)-nnz(Stay2))); %save number of relocated from B to A
-        pB = cap(2)-nnz(Stay2); %update new arrivals to B
+        pB = pB - (cap(2)-nnz(Stay2)); %update new arrivals to B
         bedocc(2,t) = nnz(Stay2) + pB; %add to ward B
         
     end 
+    
     %%%Update Ward A
-    if (pA <= cap(1)-nnz(Stay1)) %new arrivals to A are lower avaliable places
+    if (pA <= cap(1)-nnz(Stay1)) %new arrivals to A is less than number of avaliable beds
         bedocc(1,t) = nnz(Stay1) + pA; %add to ward A
-    elseif (pA > cap(1)-nnz(Stay1)) %new arrivlas are higher than avaliable places
-        Rejec(1,t) = pA + (pA - (cap(1)-nnz(Stay1))); % redirect  to reject
+    elseif (pA > cap(1)-nnz(Stay1)) %new arrivals are higher than number of avaliable beds
+        Rejec(1,t) = (pA - (cap(1)-nnz(Stay1))); % redirect to different hospital
         pA = cap(1)-nnz(Stay1); %arrivals to A that can be accepted
         bedocc(1,t) = nnz(Stay1) + pA; %add to ward A
     end 
     %%%Update Ward C
-    if (pC <= cap(3)-nnz(Stay3)) %new arrivals to A are lower avaliable places
+    if (pC <= cap(3)-nnz(Stay3)) %new arrivals to A is less than number of avaliable beds
         bedocc(3,t) = nnz(Stay3) + pC; %add to ward A
-    elseif (pC > cap(3)-nnz(Stay3)) %new arrivlas are higher than avaliable places
-        Rejec(3,t) = pC + (pC - (cap(3)-nnz(Stay3))); % redirect  to reject
-        pC = cap(3)-nnz(Stay3); %arrivals to A that can be accepted
+    elseif (pC > cap(3)-nnz(Stay3)) % more arrivals than available beds
+        Rejec(3,t) = (pC - (cap(3)-nnz(Stay3))); % redirect to different hospital
+        pC = cap(3)-nnz(Stay3); % arrivals to A that can be accepted
         bedocc(3,t) = nnz(Stay3) + pC; %add to ward A
     end 
 
     %%%%%%%%%%%Departures%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %One day at hospital; Decrease counter of days by 1
-    Stay1 = Stay1-1;
-    Stay2 = Stay2-1;
+    Stay1 = Stay1 - 1;
+    Stay2 = Stay2 - 1;
     Stay3 = Stay3 - 1;
     %Correct negative numbers and sort
     Stay1 = sort(max(Stay1,0),'descend');
