@@ -7,7 +7,7 @@ close all
 %% Initialization
 rng(19);
 % Initial guess for distribution of the beds
-Cap = [20 20 20; 27 26 27; 34 33 33];
+Cap = [20 20 20; 27 26 27; 34 33 33; 40 40 40];
 
 mu1 = log(4*sqrt(2));
 s2_1 = log(2); 
@@ -16,7 +16,7 @@ s2_2 = log(2);
 mu3 = log(5*sqrt(2));
 s2_3 = log(2);
 
-for i = 1:size(Cap,2)
+for i = 1:size(Cap,1)
     [Rejected, Reallocated, bedocc, no_patients] = BedUtil([Cap(i,1), Cap(i,2), Cap(i,3)],...
     [mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
     
