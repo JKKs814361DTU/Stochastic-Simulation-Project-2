@@ -6,8 +6,9 @@ close all
 
 %% Initialization
 rng(19);
-% Initial guess for distribution of the beds
-Cap = [20 20 20; 27 26 27; 34 33 33];
+% If we had all the beds we needed:
+Cap = [72 25 63];
+Total_Beds = sum(Cap)
 
 mu1 = log(4*sqrt(2));
 s2_1 = log(2); 

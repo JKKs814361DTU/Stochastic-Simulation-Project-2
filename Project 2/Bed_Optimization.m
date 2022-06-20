@@ -34,6 +34,8 @@ end
 %%
 S_10 = S;
 S = mean(S,3);
+%%
+load Optimiziation_75_beds.mat
 [Cap_A,Cap_C] = find(S==min(S,[],'all'));
 Cap_B=75-Cap_A-Cap_C;
 figure;
@@ -48,12 +50,61 @@ figure;
 hold on
 contour(S,'ShowText','on')
 plot(Cap_A,Cap_C,'*r')
+for i = 1:10
+[Cap_A,Cap_C] = find(S_10(:,:,i)==min(S_10(:,:,i),[],'all'));
+plot(Cap_A,Cap_C,'*b')
+end
+
 xlabel("c_A")
 ylabel("c_C")
 saveas(gcf,"opt_contour_map_75beds_lognorm.png")
 hold off
 
 save Optimiziation_75_beds.mat
+
+
+%% Simulated annealing
+m=75;
+T = @(k) 1/sqrt(1+k);
+X_opt = zeros(100,2);
+for j = 1:100
+cA0 = randi(25);
+
+X = [cA0,randi(m-cA0)];
+
+i=0;
+flag = true;
+while flag;
+    i =i+1;
+    Y = [100,100];
+    %%%%%Random walk%%%%%%
+    while sum(Y)>m || any(Y<0)
+         dirct = mod(i,2); %systematic
+         delta_X = [sign(randn)*dirct,sign(randn)*(1-dirct)];
+         Y = X(i,:)+delta_X;
+    end
+    %%%%%end of permutation%%%
+    UY = f(Y(1),Y(2));
+    UX = f(X(i,1),X(i,2));
+
+    if UY<UX
+        X(i+1,:) = Y; %accept 100%
+    else
+        if rand()<= exp(-(UY-UX)/T(i)) %accept with probability
+            X(i+1,:) = Y; 
+        else
+            X(i+1,:) = X(i,:); %reject
+        end
+    end
+if i>20    
+    flag = sum(abs(diff(X(end-10:end,:))),'all')>0;
+end
+end
+X_opt(j,:) = X(end,:);
+j
+end
+
+
 function S = f(capA,capC)
 
 % Objective function
