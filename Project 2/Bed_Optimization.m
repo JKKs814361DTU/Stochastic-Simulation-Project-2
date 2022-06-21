@@ -5,17 +5,19 @@ clear, clc
 close all
 
 
-%% MATLAB Optimization Toolbox - doesn't work
-% x = optimvar('x',Type='integer',LowerBound=1,UpperBound=75);
-% y = optimvar('y', Type='integer',LowerBound=1,UpperBound=75);
-% obj = f(x,y);
-% prob = optimproblem('Objective',obj);
-% cnstr = x+y<=75;
-% prob.Constraints.constr = cnstr;
-% x0.x = 25;
-% x0.y = 25;
-% show(prob)
-% [sol,fval] = solve(prob,x0);
+%% MATLAB Optimization Toolbox Patternsearch
+m=75;
+PSoptions = optimoptions('patternsearch','Display','iter');
+optimoptions("patternsearch",'Display','iter')
+Objfcn = @(x) f(round(x(1)),round(x(2)));
+for i =1:100
+cA0 = randi(25);
+X0 = [cA0,randi(m-cA0)];
+[Xps(i,:),Fps] = patternsearch(Objfcn,X0,[],[],[],[],[1,1],[75,75],PSoptions);
+end
+histogram2(Xps(:,1),Xps(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
+colorbar
+%%
 S = zeros(75,75,10);
 %% Brute force method
 for i = 1:10
@@ -104,7 +106,9 @@ X_opt(j,:) = X(end,:);
 j
 end
 
-
+%%
+histogram2(X_opt(:,1),X_opt(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
+colorbar
 function S = f(capA,capC)
 
 % Objective function
@@ -128,6 +132,10 @@ mu3 = log(5*sqrt(2));
 s2_3 = log(2);
 % Length of stay for C is lognormal dist. 
 % Mean and sd of 10 days.
+if capA + capC >75
+    S = inf;
+else
 [Rejec, Realloc, ~, ~] = BedUtil([capA,75-capA-capC,capC],[mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
 S = sum(Rejec,'all')+sum(Realloc,'all');
+end
 end
