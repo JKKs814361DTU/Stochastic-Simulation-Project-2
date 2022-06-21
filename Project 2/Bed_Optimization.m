@@ -4,72 +4,80 @@
 clear, clc
 close all
 
-
+m=80; %%number of beds
+iter =3;
 %% MATLAB Optimization Toolbox Patternsearch
-m=75;
+
 PSoptions = optimoptions('patternsearch','Display','iter');
 optimoptions("patternsearch",'Display','iter')
-Objfcn = @(x) f(round(x(1)),round(x(2)));
-for i =1:100
+Objfcn = @(x) f(round(x(1)),round(x(2)),m);
+for i =1:iter
 cA0 = randi(25);
 X0 = [cA0,randi(m-cA0)];
-[Xps(i,:),Fps] = patternsearch(Objfcn,X0,[],[],[],[],[1,1],[75,75],PSoptions);
+[Xps(i,:),Fps] = patternsearch(Objfcn,X0,[],[],[],[],[1,1],[m,m],PSoptions);
 end
+figure;
+
 histogram2(Xps(:,1),Xps(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
+title("Pattern search optimal solution - "+string(m)+" beds")
+xlabel("c_A")
+ylabel("c_C")
 colorbar
-%%
-S = zeros(75,75,10);
+saveas(gcf,"PS_"+string(m)+"_beds.png")
+saveas(gcf,"PS_"+string(m)+"_beds")
 %% Brute force method
-for i = 1:10
-for capA = 1:75
-    for capC =1:75
-        if capA+capC <=75
-            S(capA,capC,i)=f(capA,capC);
-        else
-            S(capA,capC,i) =NaN;
-        end
-    end
-end
-i
-end
 
-%%
-S_10 = S;
-S = mean(S,3);
-%%
-load Optimiziation_75_beds.mat
-[Cap_A,Cap_C] = find(S==min(S,[],'all'));
-Cap_B=75-Cap_A-Cap_C;
-figure;
-imagesc(S)
-ax = gca;
-ax.YDir = 'normal';
-xlabel("c_A")
-ylabel("c_C")
-colorbar
-saveas(gcf,"opt_heat_map_75beds_lognorm.png")
-figure;
-hold on
-contour(S,'ShowText','on')
-plot(Cap_A,Cap_C,'*r')
-for i = 1:10
-[Cap_A,Cap_C] = find(S_10(:,:,i)==min(S_10(:,:,i),[],'all'));
-plot(Cap_A,Cap_C,'*b')
-end
-
-xlabel("c_A")
-ylabel("c_C")
-saveas(gcf,"opt_contour_map_75beds_lognorm.png")
-hold off
-
-save Optimiziation_75_beds.mat
+%
+% S_10 = zeros(m,m,10);
+% for i = 1:10
+% for capA = 1:m
+%     for capC =1:m
+%         if capA+capC <=m
+%             S_10(capA,capC,i)=f(capA,capC,m);
+%         else
+%             S_10(capA,capC,i) =NaN;
+%         end
+%     end
+% end
+% i
+% end
+% 
+% %%
+% S = mean(S_10,3);
+% %%
+% load Optimiziation_75_beds.mat
+% [Cap_A,Cap_C] = find(S==min(S,[],'all'));
+% Cap_B=m-Cap_A-Cap_C;
+% figure;
+% imagesc(S)
+% ax = gca;
+% ax.YDir = 'normal';
+% xlabel("c_A")
+% ylabel("c_C")
+% colorbar
+% saveas(gcf,"opt_heat_map_75beds_lognorm.png")
+% figure;
+% hold on
+% contour(S,'ShowText','on')
+% plot(Cap_A,Cap_C,'*r')
+% for i = 1:10
+% [Cap_A,Cap_C] = find(S_10(:,:,i)==min(S_10(:,:,i),[],'all'));
+% plot(Cap_A,Cap_C,'*b')
+% end
+% 
+% xlabel("c_A")
+% ylabel("c_C")
+% saveas(gcf,"opt_contour_map_75beds_lognorm.png")
+% hold off
+% 
+% save Optimiziation_75_beds.mat
 
 
 %% Simulated annealing
-m=75;
+
 T = @(k) 1/sqrt(1+k);
-X_opt = zeros(100,2);
-for j = 1:100
+X_opt = zeros(iter,2);
+for j = 1:iter
 cA0 = randi(25);
 
 X = [cA0,randi(m-cA0)];
@@ -86,8 +94,8 @@ while flag;
          Y = X(i,:)+delta_X;
     end
     %%%%%end of permutation%%%
-    UY = f(Y(1),Y(2));
-    UX = f(X(i,1),X(i,2));
+    UY = f(Y(1),Y(2),m);
+    UX = f(X(i,1),X(i,2),m);
 
     if UY<UX
         X(i+1,:) = Y; %accept 100%
@@ -106,10 +114,17 @@ X_opt(j,:) = X(end,:);
 j
 end
 
-%%
+figure;
+title("Simulated annealing optimal solution - " +string(m)+" beds")
 histogram2(X_opt(:,1),X_opt(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
+xlabel("c_A")
+ylabel("c_C")
 colorbar
-function S = f(capA,capC)
+saveas(gcf,"SA_"+string(m)+"_beds.png")
+saveas(gcf,"SA_"+string(m)+"_beds")
+
+save("Opt_"+string(m)+"beds.mat")
+function S = f(capA,capC,m)
 
 % Objective function
 % A
@@ -132,10 +147,10 @@ mu3 = log(5*sqrt(2));
 s2_3 = log(2);
 % Length of stay for C is lognormal dist. 
 % Mean and sd of 10 days.
-if capA + capC >75
+if capA + capC >m
     S = inf;
 else
-[Rejec, Realloc, ~, ~] = BedUtil([capA,75-capA-capC,capC],[mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
+[Rejec, Realloc, ~, ~] = BedUtil([capA,m-capA-capC,capC],[mu1,mu2,mu3],[s2_1, s2_2, s2_3]);
 S = sum(Rejec,'all')+sum(Realloc,'all');
 end
 end
