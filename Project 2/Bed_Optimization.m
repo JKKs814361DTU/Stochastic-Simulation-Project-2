@@ -4,10 +4,10 @@
 clear, clc
 close all
 
-m=80; %%number of beds
-iter =3;
+m=75; %%number of beds
+iter =1;
 %% MATLAB Optimization Toolbox Patternsearch
-
+tic
 PSoptions = optimoptions('patternsearch','Display','iter');
 optimoptions("patternsearch",'Display','iter')
 Objfcn = @(x) f(round(x(1)),round(x(2)),m);
@@ -16,6 +16,7 @@ cA0 = randi(25);
 X0 = [cA0,randi(m-cA0)];
 [Xps(i,:),Fps] = patternsearch(Objfcn,X0,[],[],[],[],[1,1],[m,m],PSoptions);
 end
+toc
 figure;
 
 histogram2(Xps(:,1),Xps(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
@@ -27,23 +28,24 @@ saveas(gcf,"PS_"+string(m)+"_beds.png")
 saveas(gcf,"PS_"+string(m)+"_beds")
 %% Brute force method
 
-%
-% S_10 = zeros(m,m,10);
-% for i = 1:10
-% for capA = 1:m
-%     for capC =1:m
-%         if capA+capC <=m
-%             S_10(capA,capC,i)=f(capA,capC,m);
-%         else
-%             S_10(capA,capC,i) =NaN;
-%         end
-%     end
-% end
-% i
-% end
-% 
-% %%
-% S = mean(S_10,3);
+tic
+S_10 = zeros(m,m,10);
+for i = 1:iter
+for capA = 1:m
+    for capC =1:m
+        if capA+capC <=m
+            S_10(capA,capC,i)=f(capA,capC,m);
+        else
+            S_10(capA,capC,i) =NaN;
+        end
+    end
+end
+i
+end
+toc
+%%
+S = mean(S_10,3);
+
 % %%
 % load Optimiziation_75_beds.mat
 % [Cap_A,Cap_C] = find(S==min(S,[],'all'));
@@ -77,6 +79,7 @@ saveas(gcf,"PS_"+string(m)+"_beds")
 
 T = @(k) 1/sqrt(1+k);
 X_opt = zeros(iter,2);
+tic
 for j = 1:iter
 cA0 = randi(25);
 
@@ -113,17 +116,17 @@ end
 X_opt(j,:) = X(end,:);
 j
 end
-
+toc
 figure;
 title("Simulated annealing optimal solution - " +string(m)+" beds")
 histogram2(X_opt(:,1),X_opt(:,2),'BinMethod','integers','DisplayStyle','tile','ShowEmptyBins','on')
 xlabel("c_A")
 ylabel("c_C")
 colorbar
-saveas(gcf,"SA_"+string(m)+"_beds.png")
-saveas(gcf,"SA_"+string(m)+"_beds")
-
-save("Opt_"+string(m)+"beds.mat")
+% saveas(gcf,"SA_"+string(m)+"_beds.png")
+% saveas(gcf,"SA_"+string(m)+"_beds")
+% 
+% save("Opt_"+string(m)+"beds.mat")
 function S = f(capA,capC,m)
 
 % Objective function

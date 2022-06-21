@@ -23,7 +23,7 @@ for i = 1:size(Cap,1)
     figure()
     subplot(1,2,1)
         plot(1:366, Rejected(1,1:end), 1:366, Reallocated(1:end), 1:366, Rejected(3,1:end))
-        title("Rejections and reallocations");
+        title("Redirected and relocated patients");
         xlabel('days')
         legend("A","B","C")
     subplot(1,2,2)    

@@ -92,7 +92,7 @@ legend("A","B","C")
 
 figure()
 plot(1:366, Rejected(1,1:end), 1:366, Reallocated(1:end), 1:366, Rejected(3,1:end))
-title("Rejections and reallocations")
+title("Redirected and relocated patients")
 xlabel('days')
 legend("A","B","C")
 %%
