@@ -7,7 +7,7 @@ close all
 %% Initialization
 rng(19);
 % Initial guess for distribution of the beds
-Cap = [20 20 20; 27 26 27; 34 33 33];
+Cap = [21 12 27; 29 15 36; 33 15 52];
 
 mu1 = log(4*sqrt(2));
 s2_1 = log(2); 

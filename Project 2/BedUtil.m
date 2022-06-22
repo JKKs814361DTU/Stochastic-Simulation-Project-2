@@ -1,6 +1,31 @@
 function [Rejec, Realloc, bedocc, no_patients] = BedUtil(cap,mu,sigma)
-%UNTITLED3 Summary of this function goes here
-%   Detailed explanation goes here
+%BedUtil: Simulate 365 days of Hospital bed capacity with 3 Wards A,B and
+%C.
+%
+%   [Rejec, Realloc, bedocc, no_patients] = BedUtil(cap,mu,sigma)
+%
+% Input:
+%   cap=[cap_A cap_B cap_C]   is a row of bed capacities for wards A,B,C 
+%                             accordingly
+%   mu=[mu_A mu_B mu_C]      is a row of the corresponding mu parameters of
+%                            the Lognormal(mu; sigma^2) LOS distribution.
+%   sigma=[sigma_A sigma_B sigma_C]          is a row of the corresponding 
+%                                            sigma parameters of
+%                                            the Lognormal(mu; sigma^2)
+%                                            LOS distribution.
+% Output:
+%   Rejec=[R_A(t); 0; R_C(t)]  a 3 by 366 matrix. Each row is a time
+%                                   series of recjected patients for a given
+%                                   day and given ward.
+%   Realloc=[R_B(0),R_B(1),..,R_B(365)]           Time series vector of 
+%                                                 rellocated patients 
+%                                                 for a ward B.
+%   bedocc          a 3 by 366 matrix. Each row is a time series of number
+%                   of occupied beds for a given ward.
+%   no_patients          a 3 by 366 matrix. Each row is a time series of
+%                        cumulative sum of patients that arrived to the
+%                        hospital
+
 bedocc = zeros(3,365+1); % Number of beds occupied in each ward
 Rejec = zeros(3,365+1); %Number of rejected for ward A and C, B is 0
 Realloc = zeros(1,365+1); %Number reloctacted from B to A

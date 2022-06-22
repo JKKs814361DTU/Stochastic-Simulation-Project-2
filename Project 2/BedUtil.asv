@@ -1,7 +1,4 @@
-%% USING exponential distribution for LOS 
-% pretty much the same code, with minor modifications for the exponential
-% run of LOS
-function [Rejec, Realloc, bedocc, no_patients] = bedUtil_Exponential(cap,mu,sigma)
+function [Rejec, Realloc, bedocc, no_patients] = BedUtil(cap,mu,sigma)
 %BedUtil: Simulate 365 days of Hospital bed capacity with 3 Wards A,B and
 %C.
 %
@@ -11,8 +8,11 @@ function [Rejec, Realloc, bedocc, no_patients] = bedUtil_Exponential(cap,mu,sigm
 %   cap=[cap_A cap_B cap_C]   is a row of bed capacities for wards A,B,C 
 %                             accordingly
 %   mu=[mu_A mu_B mu_C]      is a row of the corresponding mu parameters of
-%                            the exponential(mu) LOS distribution.
-%   sigma=[sigma_A sigma_B sigma_C]          redundant parameter
+%                            the Lognormal(mu; sigma^2) LOS distribution.
+%   sigma=[sigma_A sigma_B sigma_C]          is a row of the corresponding 
+%                                            sigma parameters of
+%                                            the Lognormal(mu; sigma^2)
+%                                            LOS distribution.
 % Output:
 %   Rejec=[R_A(t); 0; R_C(t)]  a 3 by 366 matrix. Each row is a time
 %                                   series of recjected patients for a given
@@ -23,8 +23,9 @@ function [Rejec, Realloc, bedocc, no_patients] = bedUtil_Exponential(cap,mu,sigm
 %   bedocc          a 3 by 366 matrix. Each row is a time series of number
 %                   of occupied beds for a given ward.
 %   no_patients          a 3 by 366 matrix. Each row is a time series of
-%                        cumulative sum of patients that arrived to the
+%                        cumulative sum of patients that arrived to
 %                        hospital
+
 bedocc = zeros(3,365+1); % Number of beds occupied in each ward
 Rejec = zeros(3,365+1); %Number of rejected for ward A and C, B is 0
 Realloc = zeros(1,365+1); %Number reloctacted from B to A
@@ -97,16 +98,11 @@ for t = 1:365
 
 
     %%%Fil up beds
-    % LOS are now drawn from the exponential distribution
-    dA = exprnd(mu(1),1,pA); %Draw random days of stay for pA new patients
-    dB = exprnd(mu(2),1,pB); %Draw random days of stay for pB new patients 
-    dC = exprnd(mu(3),1,pC); %Draw random days of stay for pC new patients 
+    dA = lognrnd(mu(1),sigma(1),1,pA); %Draw random days of stay for pA new patients
+    dB = lognrnd(mu(2),sigma(2),1,pB); %Draw random days of stay for pB new patients 
+    dC = lognrnd(mu(3),sigma(3),1,pC); %Draw random days of stay for pC new patients 
 
     %%Assign day counters to beds
-    disp(t)
-    if (t == 106)
-        disp('here')
-    end
     Stay1(min(find(Stay1==0)):(min(find(Stay1==0))+pA-1)) = dA; 
     Stay2(min(find(Stay2==0)):(min(find(Stay2==0))+pB-1)) = dB;
     Stay3(min(find(Stay3==0)):(min(find(Stay3==0))+pC-1)) = dC;
@@ -116,3 +112,4 @@ for t = 1:365
 end
 
 end
+
